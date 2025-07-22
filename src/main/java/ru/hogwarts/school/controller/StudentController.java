@@ -37,8 +37,8 @@ public class StudentController {
     }
 
     @DeleteMapping("/delete")
-    public Student deleteStudent(@RequestParam("id") Long id) {
-        return studentService.deleteStudent(id);
+    public void deleteStudent(@RequestParam("id") Long id) {
+        studentService.deleteStudent(id);
     }
 
     @GetMapping("/getByAge")
