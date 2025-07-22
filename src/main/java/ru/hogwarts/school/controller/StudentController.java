@@ -16,7 +16,17 @@ public class StudentController {
         this.studentService = studentService;
     }
 
-    @GetMapping("/read")
+    @GetMapping("/getAll")
+    public Set<Student> getAllStudents() {
+        return studentService.getAll();
+    }
+
+    @PostMapping("/add")
+    public Student addStudent(@RequestBody Student student) {
+        return studentService.addStudent(student);
+    }
+
+    @GetMapping("/get")
     public Student getStudent(@RequestParam("id") Long id) {
         return studentService.getStudent(id);
     }
@@ -26,17 +36,12 @@ public class StudentController {
         return studentService.editStudentInformation(student);
     }
 
-    @PostMapping("/add")
-    public Student addStudent(@RequestBody Student student) {
-        return studentService.addStudent(student);
-    }
-
     @DeleteMapping("/delete")
-    public String deleteStudent(@RequestParam("id") Long id) {
+    public Student deleteStudent(@RequestParam("id") Long id) {
         return studentService.deleteStudent(id);
     }
 
-    @GetMapping("/getbyage")
+    @GetMapping("/getByAge")
     public Set<Student> getStudentsByAge(@RequestParam("age") int age) {
         return studentService.getByAge(age);
     }

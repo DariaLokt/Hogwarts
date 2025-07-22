@@ -1,9 +1,11 @@
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
+import ru.hogwarts.school.exceptions.InvalidIDException;
 import ru.hogwarts.school.model.Student;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,27 +21,33 @@ public class StudentService {
     }
 
     public Student addStudent(Student student) {
-        students.put(student.getId(), student);
         counter++;
-        return student;
+        return students.put(student.getId(), student);
     }
 
     public Student getStudent(Long id) {
-        return students.get(id);
+        if (students.containsKey(id)) {
+            return students.get(id);
+        } else {
+            throw new InvalidIDException();
+        }
     }
 
     public Student editStudentInformation(Student student) {
-        students.get(student.getId())
-                .setName(student.getName());
-        students.get(student.getId())
-                .setAge(student.getAge());
-        return student;
+        return students.put(student.getId(), student);
     }
 
-    public String deleteStudent(Long id) {
-        students.remove(id);
-        counter--;
-        return "Студент с id " + id + " удалён";
+    public Student deleteStudent(Long id) {
+        if (students.containsKey(id)) {
+            counter--;
+            return students.remove(id);
+        } else {
+            throw new InvalidIDException();
+        }
+    }
+
+    public Set<Student> getAll() {
+        return new HashSet<>(students.values());
     }
 
     public Set<Student> getByAge(int age) {

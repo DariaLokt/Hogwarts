@@ -15,7 +15,17 @@ public class FacultyController {
         this.facultyService = facultyService;
     }
 
-    @GetMapping("/read")
+    @GetMapping("/getAll")
+    public Set<Faculty> getAllFaculties() {
+        return facultyService.getAll();
+    }
+
+    @PostMapping("/add")
+    public Faculty addFaculty(@RequestBody Faculty faculty) {
+        return facultyService.addFaculty(faculty);
+    }
+
+    @GetMapping("/get")
     public Faculty getFaculty(@RequestParam("id") Long id) {
         return facultyService.getFaculty(id);
     }
@@ -25,17 +35,12 @@ public class FacultyController {
         return facultyService.editFacultyInformation(faculty);
     }
 
-    @PostMapping("/add")
-    public Faculty addFaculty(@RequestBody Faculty faculty) {
-        return facultyService.addFaculty(faculty);
-    }
-
     @DeleteMapping("/delete")
-    public String deleteFaculty(@RequestParam("id") Long id) {
+    public Faculty deleteFaculty(@RequestParam("id") Long id) {
         return facultyService.deleteFaculty(id);
     }
 
-    @GetMapping("/getbycolor")
+    @GetMapping("/getByColor")
     public Set<Faculty> getFacultiesByColor(@RequestParam("color") String color) {
         return facultyService.getByColor(color);
     }
