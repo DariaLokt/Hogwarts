@@ -1,6 +1,7 @@
 package ru.hogwarts.school.service;
 
 import org.springframework.stereotype.Service;
+import ru.hogwarts.school.exceptions.InvalidIDException;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.repositories.FacultyRepository;
 
@@ -21,7 +22,7 @@ public class FacultyService {
     }
 
     public Faculty getFaculty(Long id) {
-        return facultyRepository.getById(id);
+        return facultyRepository.findById(id).orElseThrow(InvalidIDException::new);
     }
 
     public Faculty editFacultyInformation(Faculty faculty) {
