@@ -3,56 +3,43 @@ package ru.hogwarts.school.service;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exceptions.InvalidIDException;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.repositories.FacultyRepository;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class FacultyService {
-    private final Map<Long, Faculty> faculties;
-    private int counter;
+    private final FacultyRepository facultyRepository;
 
-    public FacultyService() {
-        this.faculties = new HashMap<>();
-        this.counter = 0;
+    public FacultyService(FacultyRepository facultyRepository) {
+        this.facultyRepository = facultyRepository;
     }
 
     public Faculty addFaculty(Faculty faculty) {
-        counter++;
-        return faculties.put(faculty.getId(), faculty);
+        return facultyRepository.save(faculty);
     }
 
     public Faculty getFaculty(Long id) {
-        if (faculties.containsKey(id)) {
-            return faculties.get(id);
-        } else {
-            throw new InvalidIDException();
-        }
+        return facultyRepository.findById(id).orElseThrow(InvalidIDException::new);
     }
 
     public Faculty editFacultyInformation(Faculty faculty) {
-        return faculties.put(faculty.getId(), faculty);
+        return facultyRepository.save(faculty);
     }
 
-    public Faculty deleteFaculty(Long id) {
-        counter--;
-        return faculties.remove(id);
+    public void deleteFaculty(Long id) {
+        facultyRepository.deleteById(id);
     }
 
     public Set<Faculty> getByColor(String color) {
-        return faculties.values().stream()
+        return facultyRepository.findAll().stream()
                 .filter(f -> f.getColor().equals(color))
                 .collect(Collectors.toSet());
     }
 
     public Set<Faculty> getAll() {
-        return new HashSet<>(faculties.values());
-    }
-
-    public int getCounter() {
-        return counter;
+        return new HashSet<>(facultyRepository.findAll());
     }
 }
