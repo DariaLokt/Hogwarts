@@ -1,9 +1,12 @@
 package ru.hogwarts.school.controller;
 
+import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.web.bind.annotation.*;
+import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,5 +47,15 @@ public class StudentController {
     @GetMapping("/getByAge")
     public Set<Student> getStudentsByAge(@RequestParam("age") int age) {
         return studentService.getByAge(age);
+    }
+
+    @GetMapping("/findByAgeBetween")
+    public Collection<Student> findStudentsByAgeGap(@RequestParam("min") int min, @RequestParam("max") int max) {
+        return studentService.findByAgeBetween(min, max);
+    }
+
+    @GetMapping("/getFaculty")
+    public Faculty getFaculty(@RequestParam("id") Long id) {
+        return studentService.getFaculty(id);
     }
 }
