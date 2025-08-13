@@ -3,8 +3,10 @@ package ru.hogwarts.school.service;
 import org.springframework.stereotype.Service;
 import ru.hogwarts.school.exceptions.InvalidIDException;
 import ru.hogwarts.school.model.Faculty;
+import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repositories.FacultyRepository;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,5 +43,17 @@ public class FacultyService {
 
     public Set<Faculty> getAll() {
         return new HashSet<>(facultyRepository.findAll());
+    }
+
+    public Faculty findByName(String name) {
+        return facultyRepository.findByNameIgnoreCase(name);
+    }
+
+    public Faculty findByColor(String color) {
+        return facultyRepository.findByColorIgnoreCase(color);
+    }
+
+    public Collection<Student> getFacultyStudents(Long id) {
+        return facultyRepository.findById(id).orElseThrow(InvalidIDException::new).getStudentsOfFaculty();
     }
 }
