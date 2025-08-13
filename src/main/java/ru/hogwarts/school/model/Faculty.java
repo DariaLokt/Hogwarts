@@ -71,4 +71,8 @@ public class Faculty {
     public Collection<Student> getStudentsOfFaculty() {
         return studentsOfFaculty;
     }
+
+    public void setStudentsOfFaculty(Collection<Student> studentsOfFaculty) {
+        this.studentsOfFaculty = studentsOfFaculty;
+    }
 }
