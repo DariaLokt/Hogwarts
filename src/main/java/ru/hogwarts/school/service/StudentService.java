@@ -39,7 +39,7 @@ public class StudentService {
         return new HashSet<>(studentRepository.findAll());
     }
 
-    public Set<Student> getByAge(int age) {
+    public Collection<Student> getByAge(int age) {
         return studentRepository.findAll().stream()
                 .filter(st -> st.getAge() == age)
                 .collect(Collectors.toSet());
