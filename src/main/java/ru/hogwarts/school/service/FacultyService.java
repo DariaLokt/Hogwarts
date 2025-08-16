@@ -56,4 +56,8 @@ public class FacultyService {
     public Collection<Student> getFacultyStudents(Long id) {
         return facultyRepository.findById(id).orElseThrow(InvalidIDException::new).getStudentsOfFaculty();
     }
+
+    public void setFacultyStudents(Collection<Student> students, Long id) {
+        facultyRepository.findById(id).orElseThrow(InvalidIDException::new).setStudentsOfFaculty(students);
+    }
 }
