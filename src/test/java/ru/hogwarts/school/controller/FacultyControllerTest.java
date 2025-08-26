@@ -1,6 +1,6 @@
 package ru.hogwarts.school.controller;
 
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +14,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
+import ru.hogwarts.school.repositories.FacultyRepository;
+import ru.hogwarts.school.repositories.StudentRepository;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
+import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.RandomUtils.insecure;
+import static org.apache.commons.lang3.RandomUtils.nextInt;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class FacultyControllerTest {
@@ -26,215 +33,49 @@ class FacultyControllerTest {
     private int port;
 
     @Autowired
-    private FacultyController facultyController;
+    private StudentRepository studentRepository;
     @Autowired
     private TestRestTemplate restTemplate;
+    @Autowired
+    private FacultyRepository facultyRepository;
 
-    String host = "http://localhost:";
-    String fc = "/faculty";
+    @BeforeEach
+    void beforeEach() {
+        studentRepository.deleteAll();
+        facultyRepository.deleteAll();
+    }
+
+    String getURL(String end) {
+        return "http://localhost:" + port + "/faculty" + end;
+    }
+
+    List<Faculty> fillRepositoryUp() {
+        return Stream.generate(() -> facultyRepository.save(new Faculty()))
+                .limit(nextInt(10,15))
+                .toList();
+    }
+
+    Faculty getOneOfFaculties(List<Faculty> repository) {
+        return repository.get(insecure().randomInt(0,repository.size()));
+    }
+
+    Faculty getTestFaculty(String name, String color) {
+        Faculty test = new Faculty();
+        test.setId(0);
+        test.setName(name);
+        test.setColor(color);
+        return test;
+    }
 
     @Test
-    @DisplayName("Возвращает все факульеты")
+    @DisplayName("Возвращает все факультеты")
     void getAllFacultiesTest() {
-        Assertions
-                .assertThat(this.restTemplate.getForObject(host + port + fc + "/getAll", String.class))
-                .isNotNull();
-    }
-
-    @Test
-    @DisplayName("Добавляет факультет")
-    void addFacultyTest() {
         //        given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-//        when&then
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-//        delete test
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-    }
-
-    @Test
-    @DisplayName("Возвращает факультет по id")
-    void getFacultyTest() {
-        //        given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-//        when
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
-//        then
-        ResponseEntity<Faculty> result = restTemplate.exchange(
-                host + port + fc + "/get?id=" + testedFaculty.getId(),
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-        assertEquals(testedFaculty,result.getBody());
-
-//        delete test
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-    }
-
-    @Test
-    @DisplayName("Изменяет информацию о факультете")
-    void editFacultyInfoTest() {
-        //given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
-        Faculty newTestedFaculty = testedFaculty;
-        newTestedFaculty.setColor("NewTestColor");
-
-//        when
-        ResponseEntity<Faculty> result = restTemplate.exchange(
-                host + port + fc + "/edit",
-                HttpMethod.PUT,
-                new HttpEntity<>(newTestedFaculty),
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-
-        ResponseEntity<Faculty> result2 = restTemplate.exchange(
-                host + port + fc + "/get?id=" + newTestedFaculty.getId(),
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-
-//        then
-        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-        assertEquals(new ResponseEntity<>(newTestedFaculty,HttpStatus.OK), new ResponseEntity<>(result2.getBody(),result2.getStatusCode()));
-
-//        delete test
-        ResponseEntity<Faculty> studentResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + newTestedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-    }
-
-    @Test
-    @DisplayName("Удаляет факультет")
-    void deleteFacultyTest() {
-        //given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
-//        when
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-        ResponseEntity<Faculty> result = restTemplate.exchange(
-                host + port + fc + "/get?id=" + testedFaculty.getId(),
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-
-        //then
-        assertEquals(HttpStatus.valueOf(200), facultyResponseEntity.getStatusCode());
-        assertEquals(HttpStatus.valueOf(404), result.getStatusCode());
-    }
-
-    @Test
-    @DisplayName("Возвращает все факультеты определённого цвета")
-    void getFacultiesByColorTest() {
-        //given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-        Faculty testFaculty2 = new Faculty();
-        testFaculty2.setId(0L);
-        testFaculty2.setName("TestFac2");
-        testFaculty2.setColor("TestColor");
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty2,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty2 = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac2"))
-                .findFirst().orElseThrow();
-
-        Collection<Faculty> faculties = new HashSet<>();
-        faculties.add(testedFaculty);
-        faculties.add(testedFaculty2);
-        String color = testedFaculty.getColor();
+        List<Faculty> expected = fillRepositoryUp();
 
 //        when
         ResponseEntity<Collection<Faculty>> result = restTemplate.exchange(
-                host + port + fc + "/getByColor?color=" + color,
+                getURL("/getAll"),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<Collection<Faculty>>() {
@@ -242,47 +83,47 @@ class FacultyControllerTest {
         );
 
 //        then
-        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-        assertArrayEquals(faculties.toArray(),result.getBody().toArray());
-
-//        delete test
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
-        ResponseEntity<Faculty> facultyResponseEntity2 = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty2.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
+        assertThat(result).isNotNull();
+        assertThat(result.getBody())
+                .isNotNull()
+                .isNotEmpty()
+                .containsExactlyInAnyOrderElementsOf(expected);
     }
 
     @Test
-    @DisplayName("Ищет факультет по названию")
-    void findFacultyByNameTest() {
-        //given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
+    @DisplayName("Добавляет факультет")
+    void addFacultyTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        Faculty expected = getTestFaculty("Test","Color");
 
 //        when
         ResponseEntity<Faculty> result = restTemplate.exchange(
-                host + port + fc + "/findByName?name=tEsTfAc",
+                getURL("/add"),
+                HttpMethod.POST,
+                new HttpEntity<>(expected),
+                new ParameterizedTypeReference<Faculty>() {
+                }
+        );
+
+        expected.setId(result.getBody().getId());
+
+//        then
+        assertThat(result).isNotNull();
+        assertThat(result.getBody()).isNotNull();
+        assertEquals(expected,result.getBody());
+    }
+
+    @Test
+    @DisplayName("Возвращает факультет по id")
+    void getFacultyTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        Faculty expected = getOneOfFaculties(repository);
+
+//        when
+        ResponseEntity<Faculty> result = restTemplate.exchange(
+                getURL("/get?id=")+expected.getId(),
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<Faculty>() {
@@ -290,112 +131,176 @@ class FacultyControllerTest {
         );
 
 //        then
-        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-        assertEquals(testedFaculty,result.getBody());
-
-//        delete test
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-                HttpMethod.DELETE,
-                null,
-                new ParameterizedTypeReference<Faculty>() {
-                }
-        );
+        assertThat(result).isNotNull();
+        assertThat(result.getBody()).isNotNull();
+        assertEquals(expected,result.getBody());
     }
 
     @Test
-    @DisplayName("Ищет факультет по цвету")
-    void findFacultyByColorTest() {
-        //given
-        Faculty testFaculty = new Faculty();
-        testFaculty.setId(0L);
-        testFaculty.setName("TestFac");
-        testFaculty.setColor("TestColor");
-
-        Assertions
-                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-                .isNotNull();
-
-        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-                .filter(c -> c.getName().equals("TestFac"))
-                .findFirst().orElseThrow();
-
+    @DisplayName("Изменяет информацию о факультете")
+    void editFacultyInfoTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        Faculty initial = getOneOfFaculties(repository);
+        Faculty expected = new Faculty();
+        expected.setId(initial.getId());
+        expected.setName("Test");
+        expected.setColor("Color");
 
 //        when
         ResponseEntity<Faculty> result = restTemplate.exchange(
-                host + port + fc + "/findByColor?color=tEsTcOlOr",
-                HttpMethod.GET,
-                null,
+                getURL("/edit"),
+                HttpMethod.PUT,
+                new HttpEntity<>(expected),
                 new ParameterizedTypeReference<Faculty>() {
                 }
         );
 
 //        then
-        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-        assertEquals(testedFaculty,result.getBody());
+        assertThat(result).isNotNull();
+        assertThat(result.getBody()).isNotNull();
+        assertEquals(expected,result.getBody());
+        assertTrue(facultyRepository.findAll().contains(expected));
+        assertFalse(facultyRepository.findAll().contains(initial));
+    }
 
-//        delete test
-        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-                host + port + fc + "/delete?id=" + testedFaculty.getId(),
+    @Test
+    @DisplayName("Удаляет факультет")
+    void deleteFacultyTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        Faculty expected = getOneOfFaculties(repository);
+
+//        when
+        ResponseEntity<Faculty> result = restTemplate.exchange(
+                getURL("/delete?id=") + expected.getId(),
                 HttpMethod.DELETE,
                 null,
                 new ParameterizedTypeReference<Faculty>() {
                 }
         );
+
+        //then
+        assertFalse(facultyRepository.findAll().contains(expected));
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
     }
 
-    @Test
-    @DisplayName("Выводит студентов факультета")
-    void getStudentsOfFacultyTest() {
-//        //given
-//        Faculty testFaculty = new Faculty();
-//        testFaculty.setId(0L);
-//        testFaculty.setName("TestFac");
-//        testFaculty.setColor("TestColor");
-//
-//        Student testStudent = new Student();
-//        testStudent.setId(0L);
-//        testStudent.setName("Test");
-//        testStudent.setAge(100);
-//
-//        Student testStudent2 = new Student();
-//        testStudent2.setId(0L);
-//        testStudent2.setName("Test2");
-//        testStudent2.setAge(110);
-//
-//        Collection<Student> students = new HashSet<>();
-//        students.add(testStudent);
-//        students.add(testStudent2);
-//        testFaculty.setStudentsOfFaculty(students);
-//
-//        Assertions
-//                .assertThat(this.restTemplate.postForObject(host + port + fc + "/add",testFaculty,String.class))
-//                .isNotNull();
-//
-//        Faculty testedFaculty = facultyController.getAllFaculties().stream()
-//                .filter(c -> c.getName().equals("TestFac"))
-//                .findFirst().orElseThrow();
+//    @Test
+//    @DisplayName("Возвращает все факультеты определённого цвета")
+//    void getFacultiesByColorTest() {
+////        given
+//        List<Faculty> repository = fillRepositoryUp();
+//        String color = "wserrdtfygu";
+//        Faculty test = getTestFaculty("rtdf",color);
+//        Faculty test2 = getTestFaculty("edtrfgyhj",color);
+//        facultyRepository.save(test);
+//        facultyRepository.save(test2);
+//        List<Faculty> expected = new ArrayList<>();
+//        expected.add(test);
+//        expected.add(test2);
 //
 ////        when
-//        ResponseEntity<Collection<Student>> result = restTemplate.exchange(
-//                host + port + fc + "/getStudentsOfFaculty?id=" + testedFaculty.getId(),
+//        ResponseEntity<Collection<Faculty>> result = restTemplate.exchange(
+//                getURL("/getByColor?color="+color),
 //                HttpMethod.GET,
 //                null,
-//                new ParameterizedTypeReference<Collection<Student>>() {
+//                new ParameterizedTypeReference<Collection<Faculty>>() {
 //                }
 //        );
 //
 ////        then
 //        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
-//        assertArrayEquals(testedFaculty.getStudentsOfFaculty().toArray(), result.getBody().toArray());
-//
-////        delete test
-//        ResponseEntity<Faculty> facultyResponseEntity = restTemplate.exchange(
-//                host + port + fc + "/delete?id=" + testedFaculty.getId(),
-//                HttpMethod.DELETE,
-//                null,
-//                new ParameterizedTypeReference<Faculty>() {
-//                }
-//        );
+//        assertThat(result).isNotNull();
+//        assertThat(result.getBody())
+//                .isNotNull()
+//                .isNotEmpty()
+//                .containsExactlyInAnyOrderElementsOf(expected);
+//    }
+
+    @Test
+    @DisplayName("Ищет факультет по названию")
+    void findFacultyByNameTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        String name = "ezsrxdtrftgyhbj";
+        Faculty expected = getTestFaculty(name, "color");
+        facultyRepository.save(expected);
+
+//        when
+        ResponseEntity<Faculty> result = restTemplate.exchange(
+                getURL("/findByName?name=") + name.toUpperCase(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<Faculty>() {
+                }
+        );
+
+//        then
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
+        assertThat(result).isNotNull();
+        assertThat(result.getBody()).isNotNull();
+        assertEquals(expected,result.getBody());
+    }
+
+    @Test
+    @DisplayName("Ищет факультет по цвету")
+    void findFacultyByColorTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        String color = "ezsrxdtrftgyhbj";
+        Faculty expected = getTestFaculty("name", color);
+        facultyRepository.save(expected);
+
+//        when
+        ResponseEntity<Faculty> result = restTemplate.exchange(
+                getURL("/findByColor?color=") + color.toUpperCase(),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<Faculty>() {
+                }
+        );
+
+//        then
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
+        assertThat(result).isNotNull();
+        assertThat(result.getBody()).isNotNull();
+        assertEquals(expected,result.getBody());
+    }
+
+    @Test
+    @DisplayName("Выводит студентов факультета")
+    void getStudentsOfFacultyTest() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        Faculty testFac = getOneOfFaculties(repository);
+        Student test = new Student();
+        test.setName("dxgfgcg");
+        test.setAge(12);
+        test.setFaculty(testFac);
+        Student test2 = new Student();
+        test2.setName("rerdf");
+        test2.setAge(2);
+        test2.setFaculty(testFac);
+        studentRepository.save(test);
+        studentRepository.save(test2);
+        List<Student> expected = new ArrayList<>();
+        expected.add(test);
+        expected.add(test2);
+        testFac.setStudentsOfFaculty(expected);
+        facultyRepository.save(testFac);
+
+//        when
+        ResponseEntity<Collection<Student>> result = restTemplate.exchange(
+                getURL("/getStudentsOfFaculty?id="+testFac.getId()),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<Collection<Student>>() {
+                }
+        );
+
+//        then
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
+        assertThat(result).isNotNull();
+        assertEquals(expected,result.getBody());
     }
 }

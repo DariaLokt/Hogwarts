@@ -43,7 +43,7 @@ public class FacultyController {
     }
 
     @GetMapping("/getByColor")
-    public Set<Faculty> getFacultiesByColor(@RequestParam("color") String color) {
+    public Collection<Faculty> getFacultiesByColor(@RequestParam("color") String color) {
         return facultyService.getByColor(color);
     }
 
@@ -60,13 +60,5 @@ public class FacultyController {
     @GetMapping("/getStudentsOfFaculty")
     public Collection<Student> getStudentsOfFaculty(@RequestParam("id") Long id) {
         return facultyService.getFacultyStudents(id);
-    }
-
-    @PostMapping("/setStudentsOfFaculty")
-    public Collection<Student> setStudentsOfFaculty(@RequestParam("id") Long id, @RequestBody Student student) {
-        Collection<Student> students = facultyService.getFacultyStudents(id);
-        students.add(student);
-        facultyService.setFacultyStudents(students,id);
-        return students;
     }
 }
