@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -90,6 +90,8 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value(name))
                 .andExpect(jsonPath("$.color").value(color));
+        verify(facultyService,only()).addFaculty(faculty);
+        verify(facultyRepository,only()).save(faculty);
     }
 
     @Test
@@ -117,6 +119,8 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value(name))
                 .andExpect(jsonPath("$.color").value(color));
+        verify(facultyService,only()).getFaculty(id);
+        verify(facultyRepository,only()).findById(id);
     }
 
     @Test
@@ -156,6 +160,8 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$[0].id").value(id))
                 .andExpect(jsonPath("$[0].name").value(name))
                 .andExpect(jsonPath("$[0].color").value(color));
+        verify(facultyService,only()).getAll();
+        verify(facultyRepository,only()).findAll();
     }
 
     @Test
@@ -189,6 +195,8 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$.id").value(id))
                 .andExpect(jsonPath("$.name").value(name))
                 .andExpect(jsonPath("$.color").value(color));
+        verify(facultyService,only()).editFacultyInformation(faculty);
+        verify(facultyRepository,only()).save(faculty);
     }
 
     @Test
@@ -198,13 +206,15 @@ public class FacultyControllerTest {
         Long id = 1L;
 
 //        when
-
-//        then
         mockMvc.perform(MockMvcRequestBuilders
                         .delete("/faculty/delete")
                         .param("id",String.valueOf(id))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+
+//        then
+        verify(facultyService,only()).deleteFaculty(id);
+        verify(facultyRepository,only()).deleteById(id);
     }
 
     @Test
@@ -254,6 +264,8 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$[0].id").value(id))
                 .andExpect(jsonPath("$[0].name").value(name))
                 .andExpect(jsonPath("$[0].color").value(color));
+        verify(facultyService,only()).getByColor(color);
+        verify(facultyRepository,only()).findAll();
     }
 
     @Test
@@ -303,5 +315,65 @@ public class FacultyControllerTest {
                 .andExpect(jsonPath("$[0].id").value(id1))
                 .andExpect(jsonPath("$[0].name").value(name1))
                 .andExpect(jsonPath("$[0].age").value(age1));
+        verify(facultyService,only()).getFacultyStudents(id);
+        verify(facultyRepository,only()).findById(id);
+    }
+
+    @Test
+    @DisplayName("Выводит факультет по цвету, игнорируя раскладку")
+    public void findFacultyByColorTest() throws Exception {
+        //        given
+        Long id = 1L;
+        String name = "name";
+        String color = "color";
+
+        Faculty faculty = new Faculty();
+        faculty.setId(id);
+        faculty.setName(name);
+        faculty.setColor(color);
+
+//        when
+        when(facultyRepository.findByColorIgnoreCase(anyString())).thenReturn(faculty);
+
+//        then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/faculty/findByColor")
+                        .param("color", color.toUpperCase())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.color").value(color));
+        verify(facultyService,only()).findByColor(color.toUpperCase());
+        verify(facultyRepository,only()).findByColorIgnoreCase(color.toUpperCase());
+    }
+
+    @Test
+    @DisplayName("Выводит факультет по названию, игнорируя раскладку")
+    public void findFacultyByNameTest() throws Exception {
+//      given
+        Long id = 1L;
+        String name = "name";
+        String color = "color";
+
+        Faculty faculty = new Faculty();
+        faculty.setId(id);
+        faculty.setName(name);
+        faculty.setColor(color);
+
+//        when
+        when(facultyRepository.findByNameIgnoreCase(anyString())).thenReturn(faculty);
+
+//        then
+        mockMvc.perform(MockMvcRequestBuilders
+                        .get("/faculty/findByName")
+                        .param("name", name.toUpperCase())
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.name").value(name))
+                .andExpect(jsonPath("$.color").value(color));
+        verify(facultyService,only()).findByName(name.toUpperCase());
+        verify(facultyRepository,only()).findByNameIgnoreCase(name.toUpperCase());
     }
 }
