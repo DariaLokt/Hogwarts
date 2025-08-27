@@ -8,6 +8,7 @@ import ru.hogwarts.school.repositories.StudentRepository;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,5 +52,17 @@ public class StudentService {
 
     public Faculty getFaculty(Long id) {
         return studentRepository.findById(id).orElseThrow(InvalidIDException::new).getFaculty();
+    }
+
+    public Long getAmountOfStudents() {
+        return studentRepository.getAmountOfStudents();
+    }
+
+    public Integer getAverageAgeOfStudents() {
+        return studentRepository.getAverageAgeOfStudents();
+    }
+
+    public List<Student> getLastFiveStudents() {
+        return studentRepository.getLastFiveStudents();
     }
 }

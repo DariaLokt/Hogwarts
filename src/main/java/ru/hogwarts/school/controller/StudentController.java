@@ -1,13 +1,11 @@
 package ru.hogwarts.school.controller;
 
-import org.hibernate.sql.ast.tree.expression.Collation;
 import org.springframework.web.bind.annotation.*;
 import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.service.StudentService;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -58,4 +56,5 @@ public class StudentController {
     public Faculty getFaculty(@RequestParam("id") Long id) {
         return studentService.getFaculty(id);
     }
+
 }
