@@ -8,6 +8,7 @@ import ru.hogwarts.school.repositories.FacultyRepository;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,7 +36,7 @@ public class FacultyService {
         facultyRepository.deleteById(id);
     }
 
-    public Set<Faculty> getByColor(String color) {
+    public Collection<Faculty> getByColor(String color) {
         return facultyRepository.findAll().stream()
                 .filter(f -> f.getColor().equals(color))
                 .collect(Collectors.toSet());
@@ -55,5 +56,9 @@ public class FacultyService {
 
     public Collection<Student> getFacultyStudents(Long id) {
         return facultyRepository.findById(id).orElseThrow(InvalidIDException::new).getStudentsOfFaculty();
+    }
+
+    public void setFacultyStudents(Collection<Student> students, Long id) {
+        facultyRepository.findById(id).orElseThrow(InvalidIDException::new).setStudentsOfFaculty(students);
     }
 }
