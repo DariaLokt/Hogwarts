@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 @Entity
+@Table(name = "avatar")
 public class Avatar {
 
     @Id
@@ -20,7 +21,6 @@ public class Avatar {
     byte[] data;
 
     @OneToOne
-//            @JoinColumn(name = "")
     Student student;
 
     public Avatar() {
