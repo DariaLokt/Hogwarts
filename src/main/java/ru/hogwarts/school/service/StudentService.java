@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 @Service
 public class StudentService {
@@ -78,12 +80,52 @@ public class StudentService {
     }
 
     public Integer getAverageAgeOfStudents() {
-        logger.info("Was invoked method for getting student's average age");
+        logger.info("Was invoked method for getting students' average age");
         return studentRepository.getAverageAgeOfStudents();
     }
 
     public List<Student> getLastFiveStudents() {
         logger.info("Was invoked method for getting last five students");
         return studentRepository.getLastFiveStudents();
+    }
+
+    public Collection<String> getByFirstLetter(String letter) {
+        logger.info("Was invoked method for getting students by first letter of name");
+        return studentRepository.findAll().stream()
+                .map(Student::getName)
+                .map(String::toUpperCase)
+                .filter(st -> st.startsWith(letter.toUpperCase()))
+                .sorted()
+                .toList();
+    }
+
+    public Double getAverageAge() {
+        logger.info("Was invoked method for getting students' average age through stream");
+        return studentRepository.findAll().stream()
+                .mapToInt(Student::getAge)
+                .average().orElseThrow();
+    }
+
+    public Long sum() {
+        logger.info("Sum1");
+        long startTime1 = System.nanoTime();
+        long sum1 = LongStream.iterate(1, a -> a + 1)
+                .limit(1_000_000)
+                .reduce(0, Long::sum);
+        long endTime1 = System.nanoTime();
+
+        logger.info("Sum2");
+        long startTime2 = System.nanoTime();
+        long sum2 = LongStream.rangeClosed(1,1_000_000)
+                .parallel()
+                .reduce(0, Long::sum);
+        long endTime2 = System.nanoTime();
+
+        logger.info("Sum1 time: " + (endTime1 - startTime1));
+        logger.info("Sum2 time: " + (endTime2 - startTime2));
+        logger.info("sum1 = " + sum1);
+        logger.info("sum2 = " + sum2);
+
+        return sum2;
     }
 }

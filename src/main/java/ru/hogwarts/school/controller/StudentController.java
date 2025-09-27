@@ -57,4 +57,13 @@ public class StudentController {
         return studentService.getFaculty(id);
     }
 
+    @GetMapping("/getByFirstLetter")
+    public Collection<String> getByFirstLetter(@RequestParam("letter") String letter) {
+        return studentService.getByFirstLetter(letter);
+    }
+
+    @GetMapping("/getAverageAge")
+    public Double getAverageAge() {
+        return studentService.getAverageAge();
+    }
 }
