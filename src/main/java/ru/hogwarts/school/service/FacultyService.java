@@ -8,9 +8,7 @@ import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repositories.FacultyRepository;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,5 +72,12 @@ public class FacultyService {
             logger.error("There is not faculty with id = " + id);
             return new InvalidIDException(id);
         }).getStudentsOfFaculty();
+    }
+
+    public String getLongestFacultyName() {
+        logger.info("Was invoked method for getting the longest faculty name");
+        return facultyRepository.findAll().stream()
+                .map(Faculty::getName).max(Comparator.comparingInt(String::length))
+                .orElse(null);
     }
 }
