@@ -1,7 +1,7 @@
 package ru.hogwarts.school.exceptions;
 
 public class InvalidIDException extends RuntimeException {
-    public InvalidIDException() {
-        super("Нет такого id");
+    public InvalidIDException(Long id) {
+        super("Нет такого id: " + id);
     }
 }
