@@ -37,4 +37,9 @@ public class AnalysisController {
     public List<Student> getLastFiveStudents() {
         return studentService.getLastFiveStudents();
     }
+
+    @GetMapping("/sum")
+    public Long sum() {
+        return studentService.sum();
+    }
 }
