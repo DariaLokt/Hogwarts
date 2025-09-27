@@ -72,6 +72,7 @@ class FacultyControllerTest {
     void getAllFacultiesTest() {
         //        given
         List<Faculty> expected = fillRepositoryUp();
+        facultyRepository.saveAll(expected);
 
 //        when
         ResponseEntity<Collection<Faculty>> result = restTemplate.exchange(
@@ -95,6 +96,7 @@ class FacultyControllerTest {
     void addFacultyTest() {
 //        given
         List<Faculty> repository = fillRepositoryUp();
+        facultyRepository.saveAll(repository);
         Faculty expected = getTestFaculty("Test","Color");
 
 //        when
@@ -119,6 +121,7 @@ class FacultyControllerTest {
     void getFacultyTest() {
 //        given
         List<Faculty> repository = fillRepositoryUp();
+        facultyRepository.saveAll(repository);
         Faculty expected = getOneOfFaculties(repository);
 
 //        when
@@ -141,6 +144,7 @@ class FacultyControllerTest {
     void editFacultyInfoTest() {
 //        given
         List<Faculty> repository = fillRepositoryUp();
+        facultyRepository.saveAll(repository);
         Faculty initial = getOneOfFaculties(repository);
         Faculty expected = new Faculty();
         expected.setId(initial.getId());
@@ -170,6 +174,7 @@ class FacultyControllerTest {
 //        given
         List<Faculty> repository = fillRepositoryUp();
         Faculty expected = getOneOfFaculties(repository);
+        facultyRepository.saveAll(repository);
 
 //        when
         ResponseEntity<Faculty> result = restTemplate.exchange(
@@ -222,6 +227,7 @@ class FacultyControllerTest {
     void findFacultyByNameTest() {
 //        given
         List<Faculty> repository = fillRepositoryUp();
+        facultyRepository.saveAll(repository);
         String name = "ezsrxdtrftgyhbj";
         Faculty expected = getTestFaculty(name, "color");
         facultyRepository.save(expected);
@@ -247,6 +253,7 @@ class FacultyControllerTest {
     void findFacultyByColorTest() {
 //        given
         List<Faculty> repository = fillRepositoryUp();
+        facultyRepository.saveAll(repository);
         String color = "ezsrxdtrftgyhbj";
         Faculty expected = getTestFaculty("name", color);
         facultyRepository.save(expected);
@@ -295,6 +302,30 @@ class FacultyControllerTest {
                 HttpMethod.GET,
                 null,
                 new ParameterizedTypeReference<Collection<Student>>() {
+                }
+        );
+
+//        then
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
+        assertThat(result).isNotNull();
+        assertEquals(expected,result.getBody());
+    }
+
+    @Test
+    void getLongestFacultyName() {
+//        given
+        List<Faculty> repository = fillRepositoryUp();
+        repository.forEach(f -> f.setName("i"));
+        String expected = "iiiiii";
+        repository.get(0).setName(expected);
+        facultyRepository.saveAll(repository);
+
+//        when
+        ResponseEntity<String> result = restTemplate.exchange(
+                getURL("/getTheLongestName"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<String>() {
                 }
         );
 

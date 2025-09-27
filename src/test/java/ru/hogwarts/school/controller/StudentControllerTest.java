@@ -1,5 +1,7 @@
 package ru.hogwarts.school.controller;
 
+import org.assertj.core.api.Assertions;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import ru.hogwarts.school.repositories.FacultyRepository;
 import ru.hogwarts.school.repositories.StudentRepository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
@@ -80,6 +83,7 @@ class StudentControllerTest {
     void getAllStudentsTest() throws Exception {
 //        given
         List<Student> expected = fillRepositoryUp();
+        studentRepository.saveAll(expected);
 
 //        when
         ResponseEntity<Collection<Student>> result = restTemplate.exchange(
@@ -103,6 +107,7 @@ class StudentControllerTest {
     void addStudentTest() throws Exception {
 //        given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         Student expected = getTestStudent("Test",10);
 
 //        when
@@ -127,6 +132,7 @@ class StudentControllerTest {
     void getStudentTest() throws Exception {
 //        given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         Student expected = getOneOfStudents(repository);
 
 //        when
@@ -149,6 +155,7 @@ class StudentControllerTest {
     void editStudentInfoTest() throws Exception {
 //        given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         Student initial = getOneOfStudents(repository);
         Student expected = new Student();
         expected.setId(initial.getId());
@@ -177,6 +184,7 @@ class StudentControllerTest {
     void deleteStudentTest() throws Exception {
         //given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         Student expected = getOneOfStudents(repository);
 
 //        when
@@ -198,6 +206,7 @@ class StudentControllerTest {
     void getStudentsByAgeTest() throws Exception {
 //        given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         int age = insecure().randomInt();
         Student test = getTestStudent("Test", age);
         Student test2 = getTestStudent("Test2", age);
@@ -230,6 +239,7 @@ class StudentControllerTest {
     void findStudentsByAgeGapTest() throws Exception {
         //given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         int age = insecure().randomInt();
         Student test = getTestStudent("Test", insecure().randomInt(age-2,age+2));
         Student test2 = getTestStudent("Test2", insecure().randomInt(age-2,age+2));
@@ -259,6 +269,7 @@ class StudentControllerTest {
     void getFacultyTest() throws Exception {
 //        given
         List<Student> repository = fillRepositoryUp();
+        studentRepository.saveAll(repository);
         Faculty testFac = new Faculty();
         facultyRepository.save(testFac);
         Student test = getTestStudent("Test", 10, testFac);
@@ -283,5 +294,72 @@ class StudentControllerTest {
         assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
         assertThat(result).isNotNull();
         assertEquals(testFac,result.getBody());
+    }
+
+//    @Test
+//    void getByFirstLetter() {
+////        given
+//        List<Student> repository = fillRepositoryUp();
+//        studentRepository.saveAll(repository);
+//        studentRepository.save(getTestStudent("Agnes",13));
+//        studentRepository.save(getTestStudent("Armen",13));
+//        List<String> expected = List.of("Agnes".toUpperCase(),"Armen".toUpperCase());
+//        String letter = "a";
+//
+////        when
+//        JSONObject i = restTemplate.getForObject(getURL("/getByFirstLetter"), JSONObject.class, letter);
+////        then
+//        assertEquals(expected.toString(),i.toString());
+//    }
+
+    @Test
+    @DisplayName("Даёт средний возраст")
+    void getAverageAge() {
+//        given
+        int age1 = 10;
+        int age2 = 76;
+        int age3 = 5;
+        studentRepository.save(getTestStudent("test1",age1));
+        studentRepository.save(getTestStudent("test2",age2));
+        studentRepository.save(getTestStudent("test3",age3));
+        double expected = (double)(age1 + age2 + age3)/3;
+
+//        when
+        ResponseEntity<Double> result = restTemplate.exchange(
+                getURL("/getAverageAge"),
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<Double>() {
+                }
+        );
+
+//        then
+        assertEquals(HttpStatus.valueOf(200), result.getStatusCode());
+        assertThat(result).isNotNull();
+        assertEquals(expected,result.getBody());
+    }
+
+    @Test
+    void printParallel() {
+//        given
+
+//        when
+
+//        then
+        Assertions
+                .assertThat(this.restTemplate.getForObject(getURL("/print-parallel"), String.class))
+                .isNotNull();
+    }
+
+    @Test
+    void printSynchronized() {
+//        given
+
+//        when
+
+//        then
+        Assertions
+                .assertThat(this.restTemplate.getForObject(getURL("/print-synchronized"), String.class))
+                .isNotNull();
     }
 }

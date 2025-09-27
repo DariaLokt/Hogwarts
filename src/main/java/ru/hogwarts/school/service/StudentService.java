@@ -8,13 +8,9 @@ import ru.hogwarts.school.model.Faculty;
 import ru.hogwarts.school.model.Student;
 import ru.hogwarts.school.repositories.StudentRepository;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
 
 @Service
 public class StudentService {
@@ -127,5 +123,40 @@ public class StudentService {
         logger.info("sum2 = " + sum2);
 
         return sum2;
+    }
+
+    public void printParallel() {
+        logger.info("Was invoked method for printing students (parallel)");
+        System.out.println("Студент 1: " + studentRepository.findAll().get(0).getName());
+        System.out.println("Студент 2: " + studentRepository.findAll().get(1).getName());
+        new Thread(() -> {
+            System.out.println("Студент 3: " + studentRepository.findAll().get(2).getName());
+            System.out.println("Студент 4: " + studentRepository.findAll().get(3).getName());
+        }).start();
+        new Thread(() -> {
+            System.out.println("Студент 5: " + studentRepository.findAll().get(4).getName());
+            System.out.println("Студент 6: " + studentRepository.findAll().get(5).getName());
+        }).start();
+    }
+
+    public final Object flag = new Object();
+    public void printSynchronized() {
+        logger.info("Was invoked method for printing students (synchronized)");
+        synchronized (flag) {
+            System.out.println("Студент 1: " + studentRepository.findAll().get(0).getName());
+            System.out.println("Студент 2: " + studentRepository.findAll().get(1).getName());
+        }
+        synchronized (flag) {
+            new Thread(() -> {
+                System.out.println("Студент 3: " + studentRepository.findAll().get(2).getName());
+                System.out.println("Студент 4: " + studentRepository.findAll().get(3).getName());
+            }).start();
+        }
+        synchronized (flag) {
+            new Thread(() -> {
+                System.out.println("Студент 5: " + studentRepository.findAll().get(4).getName());
+                System.out.println("Студент 6: " + studentRepository.findAll().get(5).getName());
+            }).start();
+        }
     }
 }
